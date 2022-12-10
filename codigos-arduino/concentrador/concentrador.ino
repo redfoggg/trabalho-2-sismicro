@@ -29,6 +29,7 @@ void loop() {
   digitalWrite(button, stateArrayValues[3]);
   digitalWrite(photo_relay, stateArrayValues[4]);
   digitalWrite(13, shutdown_button);
+  digitalWrite(14, HIGH);
   Serial.write(shutdown_button);
 }
 
