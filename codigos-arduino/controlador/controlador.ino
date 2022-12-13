@@ -68,5 +68,5 @@ ISR(TIMER1_OVF_vect){
 }
 
 void send_data() {
-  Serial.write(stateArrayValues, 6);
+  Serial.write(stateArrayValues, num_of_pins);
 }

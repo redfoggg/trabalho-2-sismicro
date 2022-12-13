@@ -1,3 +1,5 @@
+#include <Wire.h>
+
 const int interrupt0 = 2; //define interrupt pin to 2
 const int interrupt1 = 3; //define interrupt pin to 3
 const int led = 13;
@@ -12,6 +14,7 @@ char stateArrayValues[6] = { '2', LOW, LOW, LOW, LOW, LOW };
 const int preLoaderTimeValue = 34285;
 volatile int ledValue = HIGH;
 char receivedData = LOW;
+byte contador = 0;                    // Ajudar a debugar
 
 void setup() {
    pinMode(led, OUTPUT);
@@ -29,20 +32,18 @@ void setup() {
    interrupts();                         // enable all interrupts
    attachInterrupt(digitalPinToInterrupt(interrupt1), switch_led, CHANGE);
    attachInterrupt(digitalPinToInterrupt(interrupt0), switch_led, CHANGE);
+   Wire.begin();
    Serial.begin(9600);
 }
 
 void loop() {
-    if(Serial.available() > 0) {
-      receivedData = Serial.read();
-      if(receivedData == LOW && !any_sensor_is_set())
-        ledValue = HIGH;
-      if(receivedData == HIGH)
-        ledValue = LOW;
-    }
+    Serial.println((uint8_t)contador);
+    delay(100);
     digitalWrite(led, ledValue);
     for(uint8_t i=1; i<6; i++)
       stateArrayValues[i] = digitalRead(sensorsArray[i]);
+
+      
 }
 
 void switch_led() {
@@ -58,11 +59,19 @@ bool any_sensor_is_set(){
    || digitalRead(current_sensor) == HIGH;
 }
 
-ISR(TIMER1_OVF_vect){
-  TCNT1 = preLoaderTimeValue;
-  send_data();
+void enviarEstadoBotao(char b1){
+  Wire.beginTransmission(15);       // Transmite para o mestre
+  if(b1 == LOW) {Wire.write("botao2 on");}  //Caso a ultima interrupcao tenha sido para on
+  if(b1 == HIGH) {Wire.write("botao2 of");}  //Caso a ultima interrupcao tenha sido para off
+//  Wire.write(contador);               // Ajudar a visualizar o loop (Apenas debug)
+  Wire.endTransmission();           // Para a transmissão
+
+  contador++;                       // Incrementa contador
 }
 
-void send_data() {
-  Serial.write(stateArrayValues, 6);
+ISR(TIMER1_OVF_vect){
+  sei();
+  TCNT1 = preLoaderTimeValue;
+  volatile char b1 = digitalRead(sensorsArray[1]);
+  enviarEstadoBotao(b1);
 }

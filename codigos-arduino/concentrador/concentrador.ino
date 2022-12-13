@@ -1,3 +1,5 @@
+#include <Wire.h> 
+
 const int interrupt0 = 2;
 const int num_of_pins = 5;
 const int photo_relay = 12;
@@ -9,6 +11,7 @@ uint8_t sensorsArray[num_of_pins] = { current_sensor, voltage_sensor, thermostat
 char stateArrayValues[6];
 volatile int shutdown_button = LOW;
 int controller;
+int x = 1;
 
 void setup() {
   pinMode(photo_relay, OUTPUT);
@@ -22,42 +25,43 @@ void setup() {
   pinMode(A3, OUTPUT);
   pinMode(A4, OUTPUT);
   pinMode(13, OUTPUT);
-  attachInterrupt(digitalPinToInterrupt(interrupt0), send_data, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(interrupt0), send_data, CHANGE);
   Serial.begin(9600);
+  escutarS1();
 }
 
 void loop() {
-  if(Serial.available() > 0)
-  {
-     Serial.readBytes(stateArrayValues, 6);
-     if(stateArrayValues[0] == '1')
-        controller = 1;
-     else
-        controller = 0;
-     
-     if(controller == 0)
-     {
-        digitalWrite(current_sensor, stateArrayValues[1]);
-        digitalWrite(voltage_sensor, stateArrayValues[2]);
-        digitalWrite(thermostat_sensor, stateArrayValues[3]);
-        digitalWrite(button, stateArrayValues[4]);
-        digitalWrite(photo_relay, stateArrayValues[5]);
-     }
-     if(controller == 1)
-     {
-        digitalWrite(A0, stateArrayValues[1]);
-        digitalWrite(A1, stateArrayValues[2]);
-        digitalWrite(A2, stateArrayValues[3]);
-        digitalWrite(A3, stateArrayValues[4]);
-        digitalWrite(A4, stateArrayValues[5]);
-     }
-  }
-  
   digitalWrite(13, shutdown_button);
-  Serial.write(shutdown_button);
+  
+  delay(300);
+  if(x == 0) { escutarS1(); }
+  if(x == 1) { escutarS2(); }
 }
 
-void send_data() {
-  shutdown_button = !shutdown_button;
-  digitalWrite(13, shutdown_button);
+//Função auxiliar para processar os dados recebidos do Escravo
+void receiveEvent(int howMany)
+{
+  Serial.println("teste");
+  if(x == 0){ x = 1;}
+  else {x = 0;}
+
+  x=1; // teste
+  while (1 < Wire.available()) //Loop para receber toda String de dados
+  {
+    char c = Wire.read();      //Recebe um byte caractere
+    Serial.print(c);           //Imprime na Serial
+  }
+  int x = Wire.read();         //recebe um byte do tipo inteiro
+  Serial.println(x);           //Imprime na Serial
+  
+}
+
+void escutarS1(){
+  Wire.begin(16);                //Barramento I2C do endereço 16
+  Wire.onReceive(receiveEvent);  //Recepção de dados (chama função auxiliar)
+}
+
+void escutarS2(){
+  Wire.begin(15);                //Barramento I2C do endereço 15
+  Wire.onReceive(receiveEvent);  //Recepção de dados (chama função auxiliar)
 }

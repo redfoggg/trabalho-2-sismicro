@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='UTF-8' standalone='yes'?>
 <WORKSPACE>
  <FRAME activewindow="0">
-  <PLACEMENT>2c00000000000000010000000083ffff0083fffffffffffffffffffff00100000c00000010080000fc030000</PLACEMENT>
+  <PLACEMENT>2c00000000000000010000000083ffff0083ffffffffffffffffffff0affffff2f0000002a0500001f040000</PLACEMENT>
   <WINDOW type="default" module="ISIS"/>
  </FRAME>
  <MODULE name="VSMDEBUG">
@@ -191,7 +191,7 @@
      <ITEM name="TopLineAddress">00000000</ITEM>
     </PROPERTIES>
    </POPUP>
-   <POPUP w="16" x="1399" flags="80000000" y="245" h="32" pid="14" iid="16">
+   <POPUP w="16" x="1399" flags="00000000" y="245" h="32" pid="14" iid="16">
     <PROPERTIES>
      <ITEM name="DataType">2</ITEM>
      <ITEM name="DispChars">Yes</ITEM>
@@ -221,7 +221,19 @@
      <ITEM name="TopLineAddress">00000020</ITEM>
     </PROPERTIES>
    </POPUP>
-   <POPUP w="450" x="1472" flags="00008023" y="271" h="250" pid="0" iid="27">
+   <POPUP w="450" x="1472" flags="00000023" y="271" h="250" pid="0" iid="27">
+    <PROPERTIES>
+     <ITEM name="AutoEcho">0</ITEM>
+     <ITEM name="HexMode">0</ITEM>
+    </PROPERTIES>
+   </POPUP>
+   <POPUP w="450" x="948" flags="00008023" y="264" h="250" pid="0" iid="6">
+    <PROPERTIES>
+     <ITEM name="AutoEcho">0</ITEM>
+     <ITEM name="HexMode">0</ITEM>
+    </PROPERTIES>
+   </POPUP>
+   <POPUP w="450" x="460" flags="00000023" y="262" h="250" pid="0" iid="13">
     <PROPERTIES>
      <ITEM name="AutoEcho">0</ITEM>
      <ITEM name="HexMode">0</ITEM>
