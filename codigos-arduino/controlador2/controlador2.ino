@@ -8,7 +8,7 @@ const int voltage_sensor = 9;
 const int current_sensor = 8;
 const int num_of_pins = 5;
 uint8_t sensorsArray[num_of_pins] = { current_sensor, voltage_sensor, thermostat_sensor, button, photo_relay};
-char stateArrayValues[6] = { '1', LOW, LOW, LOW, LOW, LOW };
+char stateArrayValues[6] = { '2', LOW, LOW, LOW, LOW, LOW };
 const int preLoaderTimeValue = 34285;
 volatile int ledValue = HIGH;
 char receivedData = LOW;
@@ -42,11 +42,7 @@ void loop() {
     }
     digitalWrite(led, ledValue);
     for(uint8_t i=1; i<6; i++)
-    {
       stateArrayValues[i] = digitalRead(sensorsArray[i]);
-      Serial.println(stateArrayValues[0]);
-    }
-      
 }
 
 void switch_led() {
