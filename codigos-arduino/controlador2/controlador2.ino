@@ -10,11 +10,11 @@ const int voltage_sensor = 9;
 const int current_sensor = 8;
 const int num_of_pins = 5;
 uint8_t sensorsArray[num_of_pins] = { current_sensor, voltage_sensor, thermostat_sensor, button, photo_relay};
-char stateArrayValues[6] = { '2', LOW, LOW, LOW, LOW, LOW };
+char stateArrayValues[num_of_pins] = { LOW, LOW, LOW, LOW, LOW };
 const int preLoaderTimeValue = 34285;
 volatile int ledValue = HIGH;
 char receivedData = LOW;
-byte contador = 0;                    // Ajudar a debugar
+volatile byte contador = 0;                    // Ajudar a debugar
 
 void setup() {
    pinMode(led, OUTPUT);
@@ -37,13 +37,10 @@ void setup() {
 }
 
 void loop() {
-    Serial.println((uint8_t)contador);
     delay(100);
     digitalWrite(led, ledValue);
-    for(uint8_t i=1; i<6; i++)
+    for(uint8_t i=0; i<num_of_pins; i++)
       stateArrayValues[i] = digitalRead(sensorsArray[i]);
-
-      
 }
 
 void switch_led() {
@@ -63,13 +60,14 @@ void enviarEstadoBotao(char b1){
   Wire.beginTransmission(15);       // Transmite para o mestre
   if(b1 == LOW) {Wire.write("botao2 on");}  //Caso a ultima interrupcao tenha sido para on
   if(b1 == HIGH) {Wire.write("botao2 of");}  //Caso a ultima interrupcao tenha sido para off
-//  Wire.write(contador);               // Ajudar a visualizar o loop (Apenas debug)
+  Wire.write(contador);               // Ajudar a visualizar o loop (Apenas debug)
   Wire.endTransmission();           // Para a transmissão
 
   contador++;                       // Incrementa contador
 }
 
 ISR(TIMER1_OVF_vect){
+  delay(200);
   sei();
   TCNT1 = preLoaderTimeValue;
   volatile char b1 = digitalRead(sensorsArray[1]);
