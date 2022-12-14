@@ -68,7 +68,6 @@ void sendData(){
 void receiveEvent()
 {
   sei();
-  //Serial.println("esta entrando");
   receivedData = Wire.read();        //recebe um byte do tipo char
   switchLed();
 }
