@@ -14,7 +14,6 @@ char stateArrayValues[num_of_pins] = { LOW, LOW, LOW, LOW, LOW };
 const int preLoaderTimeValue = 34285;
 volatile int ledValue = HIGH;
 char receivedData = LOW;
-volatile byte contador = 0;                    // Ajudar a debugar
 
 void setup() {
    pinMode(led, OUTPUT);
@@ -32,19 +31,27 @@ void setup() {
    interrupts();                         // enable all interrupts
    attachInterrupt(digitalPinToInterrupt(interrupt1), switch_led, CHANGE);
    attachInterrupt(digitalPinToInterrupt(interrupt0), switch_led, CHANGE);
-   Wire.begin();
+   Wire.begin(3);
+   Wire.onReceive(receiveEvent);  //Recepção de dados (chama função auxiliar)
    Serial.begin(9600);
 }
 
 void loop() {
-    delay(100);
+    //delay(100);
     digitalWrite(led, ledValue);
     for(uint8_t i=0; i<num_of_pins; i++)
       stateArrayValues[i] = digitalRead(sensorsArray[i]);
 }
 
+void switch_led_master(char x) {
+    if(x == HIGH)
+      ledValue = LOW;
+    else
+      ledValue = HIGH;
+}
+
 void switch_led() {
-   if(any_sensor_is_set())
+   if(any_sensor_is_set() || receivedData == HIGH)
       ledValue = LOW;
    else if(ledValue == LOW && receivedData == LOW)
       ledValue = HIGH;
@@ -57,17 +64,20 @@ bool any_sensor_is_set(){
 }
 
 void enviarEstadoBotao(char b1){
-  Wire.beginTransmission(15);       // Transmite para o mestre
-  if(b1 == LOW) {Wire.write("botao2 on");}  //Caso a ultima interrupcao tenha sido para on
-  if(b1 == HIGH) {Wire.write("botao2 of");}  //Caso a ultima interrupcao tenha sido para off
-  Wire.write(contador);               // Ajudar a visualizar o loop (Apenas debug)
+  Wire.beginTransmission(1);       // Transmite para o mestre
+  if(b1 == HIGH) {Wire.write("1");}  //Caso a ultima interrupcao tenha sido para on
+  if(b1 == LOW) {Wire.write("0");}  //Caso a ultima interrupcao tenha sido para off
   Wire.endTransmission();           // Para a transmissão
+}
 
-  contador++;                       // Incrementa contador
+void receiveEvent(int howMany)
+{
+  receivedData = Wire.read();         //recebe um byte do tipo char
+  switch_led();
 }
 
 ISR(TIMER1_OVF_vect){
-  delay(200);
+  delay(100);
   sei();
   TCNT1 = preLoaderTimeValue;
   volatile char b1 = digitalRead(sensorsArray[1]);

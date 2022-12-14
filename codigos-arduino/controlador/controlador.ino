@@ -14,7 +14,8 @@ char stateArrayValues[num_of_pins] = { LOW, LOW, LOW, LOW, LOW };
 const int preLoaderTimeValue = 34285;
 volatile int ledValue = HIGH;
 char receivedData = LOW;
-volatile byte contador = 0;
+float voltage_mv = 0.0F;
+char voltBuff[7];
 
 void setup() {
    pinMode(led, OUTPUT);
@@ -32,7 +33,8 @@ void setup() {
    interrupts();                         // enable all interrupts
    attachInterrupt(digitalPinToInterrupt(interrupt1), switch_led, CHANGE);
    attachInterrupt(digitalPinToInterrupt(interrupt0), switch_led, CHANGE);
-   Wire.begin();
+   Wire.begin(2);
+   Wire.onReceive(receiveEvent);  //Recepção de dados (chama função auxiliar)
    Serial.begin(9600);
 }
 
@@ -47,7 +49,7 @@ void loop() {
 }
 
 void switch_led() {
-   if(any_sensor_is_set())
+   if(any_sensor_is_set() || receivedData == HIGH)
       ledValue = LOW;
    else if(ledValue == LOW && receivedData == LOW)
       ledValue = HIGH;
@@ -59,20 +61,26 @@ bool any_sensor_is_set(){
    || digitalRead(current_sensor) == HIGH;
 }
 
+//Função auxiliar para processar os dados recebidos do Escravo
+void receiveEvent()
+{
+  receivedData = Wire.read();         //recebe um byte do tipo char
+  switch_led();
+}
+void send_data(char b1) {
+  //uint16_t adc_value = 0;
+  //adc_value = 3.2F;
+  //voltage_mv = adc_value * 5/1023;
+  //dtostrf(adc_value,7,4, voltBuff);
+  Wire.beginTransmission(1);       // Transmite para o mestre
+  if(b1 == HIGH) {Wire.write("1");}  //Caso a ultima interrupcao tenha sido para on
+  if(b1 == LOW) {Wire.write("0");}  //Caso a ultima interrupcao tenha sido para off
+  Wire.endTransmission();           // Para a transmissão
+
+}
 ISR(TIMER1_OVF_vect){
   sei();
   TCNT1 = preLoaderTimeValue;
   volatile char b1 = digitalRead(sensorsArray[1]);
   send_data(b1);
-}
-
-void send_data(char b1) {
-  Wire.beginTransmission(16);    // Transmite para o mestre
-  if(b1 == LOW) {Wire.write("botao1 on");}  //Caso a ultima interrupcao tenha sido para on
-  if(b1 == HIGH) {Wire.write("botao1 of");}  //Caso a ultima interrupcao tenha sido para off
-  Wire.write(contador);               // Ajudar a visualizar o loop (Apenas debug)
-  Wire.endTransmission();           // Para a transmissão
-
-  contador++;                       // Incrementa contador
-
 }

@@ -1,4 +1,5 @@
 #include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
 
 const int interrupt0 = 2;
 const int num_of_pins = 5;
@@ -11,7 +12,10 @@ uint8_t sensorsArray[num_of_pins] = { current_sensor, voltage_sensor, thermostat
 char stateArrayValues[6];
 volatile int shutdown_button = LOW;
 int controller;
-int x = 0;
+byte contador = 0;                    // Ajudar a debugar
+volatile float value = 0.0F;
+String dataString = "";
+LiquidCrystal_I2C lcd (0x27, 16,2);
 
 void setup() {
   pinMode(photo_relay, OUTPUT);
@@ -25,39 +29,45 @@ void setup() {
   pinMode(A3, OUTPUT);
   pinMode(A4, OUTPUT);
   pinMode(13, OUTPUT);
-  //attachInterrupt(digitalPinToInterrupt(interrupt0), send_data, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(interrupt0), sendData, CHANGE);
+  lcd.init();
+  lcd.backlight();
+  //lcd.setCursor(0,0);
+  //lcd.print("triste");
+
+  //Comunicação i2c
+  Wire.begin(1);                //Barramento I2C do endereço 16
+  Wire.onReceive(receiveEvent);  //Recepção de dados (chama função auxiliar)
   Serial.begin(9600);
 }
 
 void loop() {
+  lcd.setCursor(0,0);
+  lcd.print(dataString);
+  dataString = "";
   delay(100);
   digitalWrite(13, shutdown_button);
-  if(x == 0) { listenS1(); }
-  if(x == 1) { listenS2(); }
 }
 
 //Função auxiliar para processar os dados recebidos do Escravo
 void receiveEvent(int howMany)
 {
-  if(x == 0){ x = 1;}
-  else {x = 0;}
-
-  while (1 < Wire.available()) //Loop para receber toda String de dados
+  while (Wire.available()) //Loop para receber toda String de dados
   {
     char c = Wire.read();      //Recebe um byte caractere
-    Serial.print(c);           //Imprime na Serial
+    dataString = dataString + c;
   }
-  int x = Wire.read();         //recebe um byte do tipo inteiro
-  Serial.println(x);           //Imprime na Serial
-  
+  //value = dataString.toFloat();         //recebe um byte do tipo inteiro
+
+  Serial.println(dataString);           //Imprime na Serial
 }
 
-void listenS1(){
-  Wire.begin(16);                //Barramento I2C do endereço 16
-  Wire.onReceive(receiveEvent);  //Recepção de dados (chama função auxiliar)
-}
+void sendData(){
+  sei();
+  int state_button = digitalRead(interrupt0);
 
-void listenS2(){
-  Wire.begin(15);                //Barramento I2C do endereço 15
-  Wire.onReceive(receiveEvent);  //Recepção de dados (chama função auxiliar)
+  Wire.beginTransmission(2);              // Inicia transmissão para o escravo 2
+  Wire.beginTransmission(3);              // Inicia transmissão para o escravo 3
+  Wire.write(state_button);               // Envia o estado do do botão
+  Wire.endTransmission();                 // Finaliza a transmissão
 }
